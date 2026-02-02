@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fixed eval() Demo (No eval)</title>
+</head>
+<body>
+  <h1>Fixed Demo (No eval)</h1>
+  <p>This page avoids <code>eval()</code>. It evaluates only basic arithmetic using strict allowlisting.</p>
+
+  <label for="expr">Expression:</label>
+  <input id="expr" placeholder="Type 2+2*3" />
+  <button id="run">Compute</button>
+  <div id="out" style="margin-top: 10px; padding: 10px; border: 1px solid #ccc;"></div>
+
+  <h2>Allowed</h2>
+  <ul>
+    <li>Digits, whitespace, <code>.</code>, and operators: <code>+ - * /</code></li>
+  </ul>
+
+  <h2>Try</h2>
+  <ul>
+    <li><code>2+2*3</code></li>
+    <li><code>alert('Owned')</code> (should be rejected)</li>
+  </ul>
+
+  <script>
+    function safeCalc(expression) {
+      // ✅ Allowlist: digits, whitespace, decimal points, and arithmetic operators only.
+      // Reject parentheses/functions/letters to prevent JS execution.
+      const ok = /^[0-9+\-*/.\s]+$/.test(expression);
+      if (!ok) throw new Error("Invalid characters in expression.");
+
+      // Tokenize: numbers or operators
+      const tokens = expression.replace(/\s+/g, "").match(/[0-9.]+|[+\-*/]/g);
+      if (!tokens) throw new Error("Empty expression.");
+
+      // First pass: handle * and / with precedence
+      const stack = [];
+      for (let i = 0; i < tokens.length; i++) {
+        const t = tokens[i];
+        if (t === "*" || t === "/") {
+          const prev = Number(stack.pop());
+          const next = Number(tokens[++i]);
+          if (!Number.isFinite(prev) || !Number.isFinite(next)) throw new Error("Bad number.");
+          stack.push(t === "*" ? prev * next : prev / next);
+        } else {
+          stack.push(t);
+        }
+      }
+
+      // Second pass: handle + and -
+      let result = Number(stack[0]);
+      if (!Number.isFinite(result)) throw new Error("Bad number.");
+
+      for (let i = 1; i < stack.length; i += 2) {
+        const op = stack[i];
+        const val = Number(stack[i + 1]);
+        if (!Number.isFinite(val)) throw new Error("Bad number.");
+
+        if (op === "+") result += val;
+        else if (op === "-") result -= val;
+        else throw new Error("Unexpected operator.");
+      }
+
+      if (!Number.isFinite(result)) throw new Error("Computation error.");
+      return result;
+    }
+
+    document.getElementById("run").addEventListener("click", () => {
+      const expr = document.getElementById("expr").value;
+      try {
+        const result = safeCalc(expr);
+        document.getElementById("out").textContent = String(result);
+      } catch (e) {
+        document.getElementById("out").textContent = `Error: ${e.message}`;
+      }
+    });
+  </script>
+</body>
+</html>

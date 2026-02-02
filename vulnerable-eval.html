@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Vulnerable eval() Demo</title>
+</head>
+<body>
+  <h1>Vulnerable eval() Demo</h1>
+  <p>This page is intentionally vulnerable. It uses <code>eval()</code> on user input.</p>
+
+  <label for="expr">Expression:</label>
+  <input id="expr" placeholder="Type 2+2" />
+  <button id="run">Compute</button>
+  <div id="out" style="margin-top: 10px; padding: 10px; border: 1px solid #ccc;"></div>
+
+  <h2>Try</h2>
+  <ul>
+    <li><code>2+2</code></li>
+    <li><code>alert('Owned via eval')</code></li>
+  </ul>
+
+  <script>
+    document.getElementById("run").addEventListener("click", () => {
+      const expr = document.getElementById("expr").value;
+
+      // ❌ Vulnerable: executes arbitrary JavaScript
+      const result = eval(expr);
+
+      document.getElementById("out").textContent = String(result);
+    });
+  </script>
+</body>
+</html>
