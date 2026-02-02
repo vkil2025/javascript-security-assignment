@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fixed DOM XSS Demo</title>
+</head>
+<body>
+  <h1>Fixed DOM XSS Demo</h1>
+  <p>This page is fixed. It writes untrusted input using <code>textContent</code> instead of <code>innerHTML</code>.</p>
+
+  <div id="welcome" style="padding: 10px; border: 1px solid #ccc;"></div>
+
+  <h2>Try</h2>
+  <ul>
+    <li><code>?name=Alice</code></li>
+    <li><code>?name=&lt;img src=x onerror=alert('XSS')&gt;</code> (should NOT execute)</li>
+  </ul>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const name = params.get("name") ?? "";
+
+    // ✅ Safe sink: renders input as text, not HTML
+    document.getElementById("welcome").textContent = `Welcome, ${name}!`;
+  </script>
+</body>
+</html>
